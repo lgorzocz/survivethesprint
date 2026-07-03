@@ -96,7 +96,8 @@ export type HazardCategory =
   | "build"
   | "code"
   | "prod"
-  | "deploy";
+  | "deploy"
+  | "scope"; // planning / scope-creep disasters (changed spec, new PO idea, …)
 
 /**
  * Funny headers for the catastrophe cut-in, bucketed by category and language.
@@ -246,6 +247,22 @@ export const CATASTROPHE_HEADERS: Record<
     cs: ["NASAZENÍ V PÁTEK!", "DEPLOY ŠÍLÍ!", "PODY LÉTAJÍ!"],
     en: ["DEPLOY ON FRIDAY!", "DEPLOY GONE WILD!", "THE PODS ARE FLYING!"],
   },
+  scope: {
+    cs: [
+      "SCOPE CREEP!",
+      "TO NEBYLO V ZADÁNÍ!",
+      "BACKLOG EXPLODOVAL!",
+      "ZASE NOVÝ POŽADAVEK!",
+      "SPRINT SE HROUTÍ!",
+    ],
+    en: [
+      "SCOPE CREEP!",
+      "THAT WASN'T IN THE SPEC!",
+      "THE BACKLOG EXPLODED!",
+      "ANOTHER REQUIREMENT!",
+      "THE SPRINT IS COLLAPSING!",
+    ],
+  },
 };
 
 /** Phase 2: the full catastrophe set (§5) — all instant death, all telegraphed. */
@@ -281,17 +298,17 @@ export const CATASTROPHES: Hazard[] = [
   quip: { cs: "Pět minut výpadku. Možná.", en: "Five minutes of downtime. Maybe." },
 },
 {
-  id: "merge_friday",
-  label: { cs: "Hotfix do main", en: "Hotfix to main" },
-  snippet: "git commit -m 'quick fix'",
+  id: "hotfix_main",
+  label: { cs: "Hotfix rovnou do main", en: "Hotfix straight to main" },
+  snippet: "git commit -am 'fix' && git push origin main",
   bugDelta: 0,
   fatal: true,
   color: 0xff3b30,
   elevated: false,
-  quip: { cs: "Poslední slova programátora.", en: "A developer's last words." },
+  quip: { cs: "Určitě to nic nerozbije.", en: "It definitely won't break anything." },
 },
 {
-  id: "sudo_production",
+  id: "ssh_production",
   label: { cs: "SSH na produkci", en: "SSH to production" },
   snippet: "ssh root@prod",
   bugDelta: 0,
@@ -308,7 +325,7 @@ export const CATASTROPHES: Hazard[] = [
   fatal: true,
   color: 0xff3b30,
   elevated: false,
-  quip: { cs: "Autor odpovědi: deleted user.", en: "Answer by: deleted user." },
+  quip: { cs: "Autor zdroje: deleted user.", en: "Answer by: deleted user." },
 },
 {
   id: "disable_firewall",
@@ -323,7 +340,7 @@ export const CATASTROPHES: Hazard[] = [
 {
   id: "memory_leak",
   label: { cs: "Memory leak", en: "Memory leak" },
-  snippet: "new Bug()",
+  snippet: "while (true) leak.push(x)",
   bugDelta: 0,
   fatal: true,
   color: 0xff3b30,
@@ -352,7 +369,7 @@ export const CATASTROPHES: Hazard[] = [
 },
 {
   id: "rename_master",
-  label: { cs: "Rename all", en: "Rename all" },
+  label: { cs: "Přejmenovat master → main", en: "Rename master → main" },
   snippet: "git branch -M main",
   bugDelta: 0,
   fatal: true,
@@ -370,7 +387,7 @@ export const CATASTROPHES: Hazard[] = [
   elevated: false,
   quip: { cs: "Git je pro slabochy.", en: "Git is for the weak." },
 },
-{ id: "force_push", label: "git push --force main", snippet: "git push --force main", bugDelta: 0, fatal: true, color: 0xff3b30, elevated: false, quip: { cs: "Kdo potřebuje code review?", en: "Who needs code review?" }, },
+{ id: "force_push", label: "git push --force main", snippet: "git push --force main", bugDelta: 0, fatal: true, color: 0xff3b30, elevated: false, quip: { cs: "Historii nikdo nepotřebuje.", en: "Who needs git history?" }, },
 { id: "friday_deploy", label: { cs: "deploy · Pá 17:00", en: "deploy · Fri 17:00" }, snippet: "deploy --prod # Friday 17:00", bugDelta: 0, fatal: true, color: 0xff3b30, elevated: false, quip: { cs: "Co se může pokazit?", en: "What could go wrong?" }, },
 { id: "drop_table", label: "DROP TABLE users;", snippet: "DROP TABLE users;", bugDelta: 0, fatal: true, color: 0xff3b30, elevated: false, quip: { cs: "Zálohy? Jaké zálohy?", en: "Backups? What backups?" }, },
 { id: "rm_rf", label: "sudo rm -rf /", snippet: "sudo rm -rf /", bugDelta: 0, fatal: true, color: 0xff3b30, elevated: false, quip: { cs: "Sbohem, úplně všechno.", en: "Goodbye, everything." }, },
@@ -397,8 +414,8 @@ export const LEGENDARY_CATASTROPHES: Hazard[] = [
   { id: "npm_1847", label: { cs: "📦 npm nainstalovalo 1847 balíčků kvůli jedné závislosti", en: "📦 npm installed 1847 packages for one dependency" }, snippet: "npm i left-pad", bugDelta: 0, fatal: true, color: 0xff3b30, elevated: false, quip: { cs: "node_modules má vlastní gravitaci.", en: "node_modules has its own gravity." } },
   { id: "semicolon_moved", label: { cs: "🧩 Semicolon se přestěhoval na jiný řádek", en: "🧩 A semicolon moved to another line" }, snippet: "; // moved here", bugDelta: 0, fatal: true, color: 0xff3b30, elevated: false, quip: { cs: "A nic už nefunguje.", en: "And nothing works anymore." } },
   { id: "cat_on_keyboard", label: { cs: "🐈 Kočka prošla po klávesnici a testy začaly procházet", en: "🐈 A cat walked across the keyboard and the tests passed" }, snippet: "asdfjkl; // tests pass", bugDelta: 0, fatal: true, color: 0xff3b30, elevated: false, quip: { cs: "Nikdo se neodváží commitnout.", en: "Nobody dares to commit." } },
-  { id: "works_in_prod", label: "💀 It works in production, not locally", snippet: "// works on my machine", bugDelta: 0, fatal: true, color: 0xff3b30, elevated: false, quip: { cs: "Opačně, než má.", en: "The wrong way around." } },
-  { id: "internet_readonly", label: { cs: "🌍 Internet je dnes v read-only režimu", en: "🌍 The internet is in read-only mode today" }, snippet: "fetch() // 403", bugDelta: 0, fatal: true, color: 0xff3b30, elevated: false, quip: { cs: "Žádné pushnutí dnes.", en: "No pushing today." } },
+  { id: "works_in_prod", label: "💀 It works in production, not locally", snippet: "// works in prod, not locally", bugDelta: 0, fatal: true, color: 0xff3b30, elevated: false, quip: { cs: "Opačně, než má.", en: "The wrong way around." } },
+  { id: "internet_readonly", label: { cs: "🌍 Internet je dnes v read-only režimu", en: "🌍 The internet is in read-only mode today" }, snippet: "git push // 403", bugDelta: 0, fatal: true, color: 0xff3b30, elevated: false, quip: { cs: "Žádné pushnutí dnes.", en: "No pushing today." } },
   { id: "blackhole_gc", label: { cs: "⚫ Black Hole Garbage Collector aktivován", en: "⚫ Black Hole Garbage Collector activated" }, snippet: "gc.collect(*)", bugDelta: 0, fatal: true, color: 0xff3b30, elevated: false, quip: { cs: "Sebral i tvůj kód.", en: "It took your code too." } },
   { id: "k8s_one_node", label: { cs: "🚀 Kubernetes přesunul všechny pody na jeden server „pro zábavu“", en: "🚀 Kubernetes moved all pods to one server \"for fun\"" }, snippet: "kubectl drain --all", bugDelta: 0, fatal: true, color: 0xff3b30, elevated: false, quip: { cs: "Pro zábavu.", en: "For fun." } },
 ];
@@ -412,7 +429,7 @@ export const LEGENDARY_CATASTROPHES: Hazard[] = [
 export const HAZARD_CATEGORY: Record<string, HazardCategory> = {
   // regular catastrophes
   merge_main: "git",
-  merge_friday: "git",
+  hotfix_main: "git",
   rename_master: "git",
   force_push: "git",
   restart_database: "db",
@@ -420,7 +437,7 @@ export const HAZARD_CATEGORY: Record<string, HazardCategory> = {
   update_no_where: "db",
   friday_deploy: "deploy",
   delete_prod: "prod",
-  sudo_production: "prod",
+  ssh_production: "prod",
   disable_firewall: "prod",
   production_debug: "prod",
   fix_in_prod: "prod",
@@ -430,14 +447,21 @@ export const HAZARD_CATEGORY: Record<string, HazardCategory> = {
   rewrite_everything: "code",
   // legendary
   out_of_coffee: "coffee",
+  bug_writes_bugs: "code",
   legacy_awakened: "code",
+  spec_changed: "scope",
+  po_new_idea: "scope",
+  jira_sentient: "scope",
   git_self_conflict: "git",
   css_backend: "code",
   regex_sentient: "code",
   npm_1847: "code",
   semicolon_moved: "code",
+  blackhole_gc: "code",
   works_in_prod: "prod",
   k8s_one_node: "deploy",
+  // left on "generic" on purpose (no category fits better than plain panic):
+  //   ai_refused, cat_on_keyboard, internet_readonly
 };
 
 /** Human-readable cause-of-death text keyed by hazard id (§11 analytics + §2). */
