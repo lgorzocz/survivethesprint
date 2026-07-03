@@ -10,6 +10,7 @@
 import Phaser from "phaser";
 import { COLORS } from "../config/balance.ts";
 import type { Hazard as HazardConfig } from "../config/hazards.ts";
+import { loc } from "../i18n.ts";
 
 export class Hazard extends Phaser.GameObjects.Container {
   readonly config: HazardConfig;
@@ -71,7 +72,7 @@ export class Hazard extends Phaser.GameObjects.Container {
     );
     this.add(
       this.scene.add
-        .text(0, 30, this.config.label, {
+        .text(0, 30, loc(this.config.label), {
           fontFamily: "monospace",
           fontSize: "11px",
           color: "#e0a030",
@@ -93,7 +94,7 @@ export class Hazard extends Phaser.GameObjects.Container {
     );
     this.add(
       this.scene.add
-        .text(0, 12, this.config.label, {
+        .text(0, 12, loc(this.config.label), {
           fontFamily: "monospace",
           fontSize: "10px",
           color: "#ffffff",

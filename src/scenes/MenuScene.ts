@@ -67,7 +67,7 @@ export class MenuScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    this.buildLangSwitcher(cx + 264, 90 + dy);
+    this.buildLangSwitcher(cx + 254, 80 + dy);
 
     // primary CTA
     const begin = () => {
@@ -147,15 +147,20 @@ export class MenuScene extends Phaser.Scene {
         })
         .setOrigin(0.5);
       if (active) return;
-      txt.setInteractive({ useHandCursor: true });
-      txt.on("pointerover", () => txt.setColor("#9aa4b2"));
-      txt.on("pointerout", () => txt.setColor("#6a7688"));
-      txt.on("pointerdown", () => {
+      // The 14px glyphs alone are far below the ~44px minimum touch target, so
+      // on mobile the switch was almost impossible to hit. Put an invisible,
+      // finger-sized tap zone behind the label and drive the interaction from it.
+      const hit = this.add
+        .zone(lx, y, 52, 44)
+        .setInteractive({ useHandCursor: true });
+      hit.on("pointerover", () => txt.setColor("#9aa4b2"));
+      hit.on("pointerout", () => txt.setColor("#6a7688"));
+      hit.on("pointerdown", () => {
         setLang(code);
         this.scene.restart();
       });
     };
-    mk(x - 16, "cs", "CZ");
+    mk(x - 30, "cs", "CZ");
     this.add
       .text(x, y, "|", {
         fontFamily: "monospace",
@@ -163,7 +168,7 @@ export class MenuScene extends Phaser.Scene {
         color: "#3a3d47",
       })
       .setOrigin(0.5);
-    mk(x + 16, "en", "EN");
+    mk(x + 30, "en", "EN");
   }
 
   private buildSoundToggle(x: number, y: number): void {

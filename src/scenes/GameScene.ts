@@ -41,7 +41,7 @@ import { applyResponsiveSize, setupCamera } from "../render.ts";
 import { drawEditorChrome, drawStatusBar } from "../ui/EditorChrome.ts";
 import { TechInfoCard } from "../ui/TechInfoCard.ts";
 import { openDonate } from "../ui/DonateDialog.ts";
-import { t } from "../i18n.ts";
+import { t, loc, getLang } from "../i18n.ts";
 import { track } from "../analytics/track.ts";
 import { haptics } from "../juice/haptics.ts";
 import { audio, unlock as audioUnlock } from "../audio/AudioSystem.ts";
@@ -661,11 +661,15 @@ export class GameScene extends Phaser.Scene {
     c.add(this.add.text(312, -2, "💀", { fontSize: "46px" }).setOrigin(0.5));
     // Pick a header that fits this catastrophe's category, mixed with the
     // always-fitting generic pool so it makes sense but still varies (§ headers).
+    const lang = getLang();
     const category = HAZARD_CATEGORY[cfg.id] ?? "generic";
     const headerPool =
       category === "generic"
-        ? CATASTROPHE_HEADERS.generic
-        : [...CATASTROPHE_HEADERS[category], ...CATASTROPHE_HEADERS.generic];
+        ? CATASTROPHE_HEADERS.generic[lang]
+        : [
+            ...CATASTROPHE_HEADERS[category][lang],
+            ...CATASTROPHE_HEADERS.generic[lang],
+          ];
     const header = headerPool[Math.floor(Math.random() * headerPool.length)];
     c.add(
       this.add
@@ -679,10 +683,11 @@ export class GameScene extends Phaser.Scene {
     );
     // Legendary catastrophes carry long sentence labels; shrink the font so they
     // stay on one line inside the cut-in box instead of overflowing the ~600px width.
-    const labelSize = Math.max(12, Math.min(26, Math.floor(1000 / cfg.label.length)));
+    const label = loc(cfg.label);
+    const labelSize = Math.max(12, Math.min(26, Math.floor(1000 / label.length)));
     c.add(
       this.add
-        .text(0, -2, cfg.label, {
+        .text(0, -2, label, {
           fontFamily: "monospace",
           fontSize: `${labelSize}px`,
           color: "#ff5c57",
@@ -692,7 +697,7 @@ export class GameScene extends Phaser.Scene {
     );
     c.add(
       this.add
-        .text(0, 26, cfg.quip ?? t("cutin.run"), {
+        .text(0, 26, cfg.quip ? loc(cfg.quip) : t("cutin.run"), {
           fontFamily: "monospace",
           fontSize: "17px",
           color: "#ffb3b0",
@@ -760,7 +765,7 @@ export class GameScene extends Phaser.Scene {
     this.time.delayedCall(650, () => {
       this.scene.start("GameOverScene", {
         cause,
-        causeLabel: CAUSE_LABEL[cause] ?? cause,
+        causeLabel: loc(CAUSE_LABEL[cause] ?? cause),
         summary,
       });
     });

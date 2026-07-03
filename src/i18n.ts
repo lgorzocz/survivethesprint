@@ -10,6 +10,13 @@
 
 export type Lang = "cs" | "en";
 
+/**
+ * A localized string in config/data: either a plain string (same in both
+ * languages — e.g. code like `rm -rf /`) or a {cs, en} pair. Resolve it with
+ * loc() at render time so it follows the active language.
+ */
+export type Loc = string | { cs: string; en: string };
+
 const KEY = "survivethesprint.lang";
 
 function load(): Lang {
@@ -217,6 +224,11 @@ const DICT: Record<string, Entry> = {
     en: "Long immunity — survive a catastrophe!",
   },
 };
+
+/** Resolve a Loc (plain string or {cs, en}) to the active language. */
+export function loc(v: Loc): string {
+  return typeof v === "string" ? v : v[lang];
+}
 
 /** Translate a key, with optional {placeholder} interpolation. */
 export function t(
