@@ -19,6 +19,50 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>Survive the Sprint</title>
+    <meta
+      name="description"
+      content="Utíkej před přívalem bugů — endless runner v kódovém editoru. Kolik sprintů přežiješ?"
+    />
+
+    <!-- Open Graph — link previews on LinkedIn / Facebook / Slack / Discord.
+         url + image MUST be absolute or crawlers won't fetch them. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Survive the Sprint" />
+    <meta property="og:locale" content="cs_CZ" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta
+      property="og:url"
+      content="https://lgorzocz.github.io/survivethesprint/"
+    />
+    <meta property="og:title" content="Survive the Sprint" />
+    <meta
+      property="og:description"
+      content="Utíkej před přívalem bugů — endless runner v kódovém editoru. Kolik sprintů přežiješ?"
+    />
+    <meta
+      property="og:image"
+      content="https://lgorzocz.github.io/survivethesprint/og_image.png"
+    />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="715" />
+    <meta
+      property="og:image:alt"
+      content="Survive the Sprint — bug monster honí vývojáře v kódovém editoru"
+    />
+
+    <!-- Twitter/X card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Survive the Sprint" />
+    <meta
+      name="twitter:description"
+      content="Utíkej před přívalem bugů — endless runner v kódovém editoru. Kolik sprintů přežiješ?"
+    />
+    <meta
+      name="twitter:image"
+      content="https://lgorzocz.github.io/survivethesprint/og_image.png"
+    />
+
     <!-- Pre-paint: if the player already consented, mark <html> so the consent
          wall never flashes before main.ts runs. -->
     <script>
@@ -226,6 +270,23 @@
         border-radius: 10px;
         display: block;
       }
+      #install .label {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+        gap: 2px;
+      }
+      #install .title {
+        font-size: 16px;
+        font-weight: bold;
+      }
+      #install .sub {
+        font-size: 12.5px;
+        font-weight: normal;
+        line-height: 1.3;
+        color: rgba(255, 255, 255, 0.88);
+      }
       #install.show {
         display: inline-flex;
       }
@@ -393,7 +454,10 @@
     </div>
     <button id="install" type="button">
       <img src="/icon-192.png" alt="" />
-      <span data-i18n="install.button">Nainstalovat na plochu</span>
+      <span class="label">
+        <span class="title" data-i18n="install.button">Nainstalovat na plochu</span>
+        <span class="sub" data-i18n="install.sub">Hraj na celou obrazovku, bez lišt prohlížeče</span>
+      </span>
     </button>
     <div id="installed">
       <span data-i18n="installed.text">💡 Z ikony na ploše běží Survive the Sprint na celou obrazovku bez lišt prohlížeče.</span>

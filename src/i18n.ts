@@ -165,6 +165,10 @@ const DICT: Record<string, Entry> = {
     cs: "Nainstalovat na plochu",
     en: "Install to Home Screen",
   },
+  "install.sub": {
+    cs: "Hraj na celou obrazovku, bez lišt prohlížeče",
+    en: "Play fullscreen, without browser bars",
+  },
   "installed.text": {
     cs: "💡 Z ikony na ploše běží Survive the Sprint na celou obrazovku bez lišt prohlížeče.",
     en: "💡 From the Home Screen icon Survive the Sprint runs fullscreen, without browser bars.",
