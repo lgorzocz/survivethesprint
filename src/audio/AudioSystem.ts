@@ -34,7 +34,10 @@ let droneFilter: BiquadFilterNode | null = null;
 // Files are optional — drop them in public/audio/ (see docs/MUSIC.md). Until
 // then the game just stays music-less; nothing breaks.
 const MUSIC_CALM_URL = "audio/music-calm.mp3";
-const MUSIC_INTENSE_URL = "audio/music-intense.mp3"; // optional (adaptive layer)
+// Optional adaptive layer. Left null so we don't fetch a file that isn't there
+// (that logs a 404 in the console). Set it to "audio/music-intense.mp3" once you
+// drop the track into public/audio/ — the calm layer then crossfades into it.
+const MUSIC_INTENSE_URL: string | null = null;
 const MUSIC_MENU_URL = "audio/music-menu.mp3";
 const MUSIC_VOL = 0.1; // master gain for music (SFX are louder)
 
@@ -385,10 +388,12 @@ async function loadMusic(): Promise<void> {
     calmBuf = null; // no calm file yet -> no in-game music
     console.warn("[audio] in-game music failed to load/decode:", e);
   }
-  try {
-    intenseBuf = await fetchDecode(MUSIC_INTENSE_URL); // optional layer
-  } catch {
-    intenseBuf = null;
+  if (MUSIC_INTENSE_URL) {
+    try {
+      intenseBuf = await fetchDecode(MUSIC_INTENSE_URL); // optional layer
+    } catch {
+      intenseBuf = null;
+    }
   }
   musicLoading = false;
 }
