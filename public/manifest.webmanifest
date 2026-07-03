@@ -1,0 +1,33 @@
+{
+  "name": "Survive the Sprint",
+  "short_name": "SurviveTheSprint",
+  "description": "Utíkej před přívalem bugů — endless runner v kódovém editoru.",
+  "lang": "cs",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "landscape",
+  "background_color": "#1e1e1e",
+  "theme_color": "#1e1e1e",
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://lgorzocz.github.io/survivethesprint/manifest.webmanifest"
+    }
+  ],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

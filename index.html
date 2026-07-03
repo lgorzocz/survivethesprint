@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <!-- iOS: true fullscreen only when added to the Home Screen (no Safari chrome). -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="SurviveTheSprint" />
+    <meta name="theme-color" content="#1e1e1e" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <title>Survive the Sprint</title>
+    <!-- Pre-paint: if the player already consented, mark <html> so the consent
+         wall never flashes before main.ts runs. -->
+    <script>
+      try {
+        if (localStorage.getItem("survivethesprint.consent") === "1")
+          document.documentElement.classList.add("has-consent");
+      } catch (e) {}
+    </script>
+    <!-- Google Analytics (gtag.js) -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-QG7VZDE84D"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      // GDPR: analytics off until the player consents (see consent overlay)
+      gtag("consent", "default", {
+        ad_storage: "denied",
+        ad_user_data: "denied",
+        ad_personalization: "denied",
+        analytics_storage: "denied",
+      });
+      gtag("config", "G-QG7VZDE84D");
+    </script>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        height: 100dvh; /* iOS: track the visible viewport as the toolbar collapses */
+        background: #1e1e1e; /* VS Code dark editor background */
+        overflow: hidden;
+        overscroll-behavior: none; /* kill iOS rubber-band scroll */
+        font-family: "Cascadia Code", "Fira Code", ui-monospace, monospace;
+      }
+      #game {
+        /* Sized in JS to window.visualViewport (the *actually visible* area on
+           iOS, excluding Safari's collapsing toolbars). Falls back to the layout
+           viewport before the first sync runs. */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        width: 100dvw;
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+      }
+      #stage {
+        /* The Phaser parent. Fills the full visible height (the game is 16:9 and
+           the phone is wider, so height is the limiting side — no vertical bars).
+           Only inset LEFT/RIGHT for the notch / Dynamic Island, which in landscape
+           sit on a side; the bottom home indicator just overlays the info-only
+           status bar rather than wasting a strip. */
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: env(safe-area-inset-right, 0px);
+        left: env(safe-area-inset-left, 0px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        touch-action: none; /* let Phaser own swipe/tap gestures */
+      }
+
+      /* Landscape only — in portrait, hide the game and ask to rotate. */
+      #rotate {
+        position: fixed;
+        inset: 0;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        background: #1e1e1e;
+        color: #d4d4d4;
+        text-align: center;
+        padding: 24px;
+        z-index: 10;
+      }
+      #rotate .icon {
+        font-size: 64px;
+        animation: tilt 1.6s ease-in-out infinite;
+      }
+      #rotate .title {
+        font-size: 22px;
+        font-weight: bold;
+        color: #ff5c57;
+      }
+      #rotate .sub {
+        font-size: 15px;
+        color: #9aa4b2;
+      }
+      @keyframes tilt {
+        0%, 40% { transform: rotate(0deg); }
+        70%, 100% { transform: rotate(-90deg); }
+      }
+      @media (orientation: portrait) {
+        #game {
+          visibility: hidden;
+        }
+        #rotate {
+          display: flex;
+        }
+      }
+
+      /* Consent wall — must agree before playing. */
+      #consent {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #1a1a1a;
+        padding: 24px;
+        z-index: 20;
+      }
+      /* already consented (set pre-paint by the inline head script) — never flash */
+      html.has-consent #consent {
+        display: none;
+      }
+      #consent .box {
+        max-width: 460px;
+        background: #24262e;
+        border: 1px solid #3a3d47;
+        border-radius: 16px;
+        padding: 28px 26px;
+        text-align: center;
+        color: #d4d4d4;
+      }
+      #consent h1 {
+        margin: 0 0 6px;
+        color: #ff5c57;
+        font-size: 34px;
+      }
+      #consent p {
+        font-size: 14px;
+        line-height: 1.5;
+        color: #9aa4b2;
+      }
+      #consent .fine {
+        font-size: 12px;
+        color: #585858;
+        margin-bottom: 0;
+      }
+      #consent a {
+        color: #4ec9b0;
+      }
+      #consent-accept {
+        margin: 14px 0 12px;
+        padding: 12px 22px;
+        font-family: inherit;
+        font-size: 17px;
+        font-weight: bold;
+        color: #fff;
+        background: #0e78c4;
+        border: none;
+        border-radius: 24px;
+        cursor: pointer;
+      }
+      #consent-accept:hover {
+        background: #2b93d6;
+      }
+
+      /* Custom PWA install button — same style/placement as the post-install
+         notice (centred bottom banner), but red like the app icon's bug. Shown
+         only on touch devices; desktop uses the browser's URL-bar install icon. */
+      #install {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: max(18px, env(safe-area-inset-bottom, 0px));
+        z-index: 16;
+        display: none;
+        align-items: center;
+        gap: 14px;
+        max-width: min(92vw, 460px);
+        padding: 12px 22px 12px 14px;
+        font-family: inherit;
+        font-size: 16px;
+        line-height: 1.4;
+        font-weight: bold;
+        color: #fff;
+        background: #ff3b30;
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+      }
+      #install:hover {
+        background: #ff5c52;
+      }
+      #install img {
+        flex: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: block;
+      }
+      #install.show {
+        display: inline-flex;
+      }
+
+      /* Post-install notice — shown after install / when the PWA is already
+         installed but the player is still in the browser tab. Stays until the
+         player closes it with the ✕. */
+      #installed {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: max(18px, env(safe-area-inset-bottom, 0px));
+        z-index: 16;
+        display: none;
+        align-items: center;
+        gap: 14px;
+        max-width: min(92vw, 460px);
+        padding: 16px 18px 16px 22px;
+        font-family: inherit;
+        font-size: 16px;
+        line-height: 1.4;
+        font-weight: bold;
+        color: #fff;
+        background: #1e7f4f;
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5);
+      }
+      #installed.show {
+        display: inline-flex;
+      }
+      #installed-close {
+        flex: none;
+        width: 34px;
+        height: 34px;
+        font-size: 18px;
+        font-weight: bold;
+        color: #fff;
+        background: rgba(255, 255, 255, 0.18);
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+      }
+      #installed-close:hover {
+        background: rgba(255, 255, 255, 0.32);
+      }
+
+      /* iOS "Add to Home Screen" instructions (no install API on iOS). */
+      #ios-install {
+        position: fixed;
+        inset: 0;
+        z-index: 25;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: rgba(0, 0, 0, 0.72);
+      }
+      #ios-install.show {
+        display: flex;
+      }
+      #ios-install .box {
+        max-width: 440px;
+        background: #24262e;
+        border: 1px solid #3a3d47;
+        border-radius: 16px;
+        padding: 24px 26px;
+        text-align: center;
+        color: #d4d4d4;
+      }
+      #ios-install h2 {
+        margin: 0 0 10px;
+        color: #4ec9b0;
+        font-size: 22px;
+      }
+      #ios-install p {
+        font-size: 15px;
+        line-height: 1.6;
+        color: #c7ccd6;
+        margin: 6px 0;
+      }
+      #ios-install .step {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      #ios-install-close {
+        margin-top: 16px;
+        padding: 10px 20px;
+        font-family: inherit;
+        font-size: 15px;
+        font-weight: bold;
+        color: #fff;
+        background: #0e78c4;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+      }
+
+      /* Installed-but-in-browser wall: send the player to the Home Screen app
+         (Android/Chromium only — see main.ts). Opaque so play is blocked. */
+      #use-app {
+        position: fixed;
+        inset: 0;
+        z-index: 30;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 28px;
+        text-align: center;
+        background: #1a1a1a;
+        color: #d4d4d4;
+      }
+      #use-app.show {
+        display: flex;
+      }
+      #use-app .icon {
+        font-size: 62px;
+      }
+      #use-app h2 {
+        margin: 8px 0 4px;
+        color: #ff5c57;
+        font-size: 24px;
+      }
+      #use-app p {
+        margin: 4px 0;
+        font-size: 15px;
+        line-height: 1.6;
+        color: #c7ccd6;
+        max-width: 420px;
+      }
+      #use-app-anyway {
+        margin-top: 18px;
+        background: none;
+        border: none;
+        color: #6a7688;
+        font-family: inherit;
+        font-size: 13px;
+        text-decoration: underline;
+        cursor: pointer;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div id="game"><div id="stage"></div></div>
+    <div id="rotate">
+      <div class="icon">📱</div>
+      <div class="title" data-i18n="rotate.title">Otoč zařízení na šířku</div>
+      <div class="sub" data-i18n="rotate.sub">Survive the Sprint se hraje na šířku 🖥️</div>
+    </div>
+    <div id="consent">
+      <div class="box">
+        <h1>Survive the Sprint</h1>
+        <p data-i18n-html="consent.text">
+          Survive the Sprint používá <strong>Google Analytics</strong> k anonymním
+          statistikám hraní. Kliknutím na „Souhlasím a hrát" souhlasíš s
+          analytickými cookies.
+        </p>
+        <button id="consent-accept" data-i18n="consent.accept">Souhlasím a hrát</button>
+        <p class="fine" data-i18n="consent.fine">Bez souhlasu hru bohužel nelze spustit.</p>
+      </div>
+    </div>
+    <button id="install" type="button">
+      <img src="/icon-192.png" alt="" />
+      <span data-i18n="install.button">Nainstalovat na plochu</span>
+    </button>
+    <div id="installed">
+      <span data-i18n="installed.text">💡 Z ikony na ploše běží Survive the Sprint na celou obrazovku bez lišt prohlížeče.</span>
+      <button id="installed-close" type="button" aria-label="Zavřít">✕</button>
+    </div>
+    <div id="ios-install">
+      <div class="box">
+        <h2 data-i18n="ios.title">Přidat na plochu 📲</h2>
+        <p data-i18n="ios.text">Survive the Sprint poběží na celou obrazovku bez lišt prohlížeče.</p>
+        <p class="step" data-i18n-html="ios.step1">1. Klepni na <strong>Sdílet</strong> &nbsp;<strong>&#x2191;</strong></p>
+        <p class="step" data-i18n-html="ios.step2">2. Zvol <strong>Přidat na plochu</strong></p>
+        <button id="ios-install-close" type="button" data-i18n="ios.ok">Rozumím</button>
+      </div>
+    </div>
+    <div id="use-app">
+      <div class="icon">📲</div>
+      <h2 data-i18n="useApp.title">Survive the Sprint máš na ploše</h2>
+      <p data-i18n="useApp.text1">Spusť ho z ikony na ploše — poběží na celou obrazovku.</p>
+      <p data-i18n="useApp.text2">V prohlížeči je kvůli lištám oříznutý.</p>
+      <button id="use-app-anyway" type="button" data-i18n="useApp.anyway">Přesto hrát v prohlížeči</button>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

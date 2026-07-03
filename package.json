@@ -1,0 +1,22 @@
+{
+  "name": "survivethesprint",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "You are a developer running from a growing pile of bugs, holding it back with coffee and modern technologies — all inside a code editor.",
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "lgorzocz <gorzo@email.cz>",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "phaser": "^4.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vite": "^6.0.0"
+  }
+}
