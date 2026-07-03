@@ -28,13 +28,15 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - run: npm ci
       - run: npm run build # tsc --noEmit && vite build → dist/
 
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true # create the Pages site if it doesn't exist yet
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
