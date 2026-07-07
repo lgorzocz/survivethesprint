@@ -36,6 +36,10 @@ export class Spawner {
   private sinceTechMs = 0;
   private pending?: SpawnRequest; // e.g. a catastrophe queued behind its Hotfix
   private pendingTimer = 0; // ms until the pending request fires
+  // Shuffle-bags per pool: draw every entry once before any repeats, so the same
+  // hazard/catastrophe text doesn't recur (plain random-with-replacement felt
+  // repetitive — you only meet ~2 catastrophes a run). Keyed by the pool array.
+  private bags = new Map<readonly unknown[], unknown[]>();
 
   /** Current world scroll speed (px/sec), ramped by time. */
   scrollSpeed(): number {
@@ -137,7 +141,20 @@ export class Spawner {
     return lane;
   }
 
+  /**
+   * Draw from a shuffle-bag: each pool entry comes up once before the bag
+   * refills, so texts cycle through the whole set instead of repeating at random.
+   */
   private pick<T>(arr: readonly T[]): T {
-    return arr[Math.floor(Math.random() * arr.length)];
+    let bag = this.bags.get(arr) as T[] | undefined;
+    if (!bag || bag.length === 0) {
+      bag = [...arr];
+      for (let i = bag.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [bag[i], bag[j]] = [bag[j], bag[i]]; // Fisher–Yates
+      }
+      this.bags.set(arr, bag as unknown[]);
+    }
+    return bag.pop() as T;
   }
 }
