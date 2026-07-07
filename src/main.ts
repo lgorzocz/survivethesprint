@@ -246,12 +246,14 @@ type InstallPrompt = Event & {
 };
 let deferredPrompt: InstallPrompt | null = null;
 
-// The player can dismiss the install banner with its ✕; remember that so it
-// doesn't nag on every load. They can still install via the browser's own UI.
+// The player can dismiss the install banner with its ✕; remember that for the
+// rest of the visit so it doesn't reappear. sessionStorage = the banner is free
+// to offer itself again on the next visit. They can still install via the
+// browser's own UI meanwhile.
 const INSTALL_DISMISSED_KEY = "survivethesprint.install.dismissed";
 const installDismissed = (): boolean => {
   try {
-    return localStorage.getItem(INSTALL_DISMISSED_KEY) === "1";
+    return sessionStorage.getItem(INSTALL_DISMISSED_KEY) === "1";
   } catch {
     return false;
   }
@@ -345,9 +347,9 @@ document.getElementById("install-close")?.addEventListener("click", (e) => {
   e.stopPropagation();
   installBtn?.classList.remove("show");
   try {
-    localStorage.setItem(INSTALL_DISMISSED_KEY, "1");
+    sessionStorage.setItem(INSTALL_DISMISSED_KEY, "1");
   } catch {
-    /* private mode — dismissed for this session only */
+    /* storage unavailable — dismissed for this page view only */
   }
   track({ name: "pwa_install", outcome: "dismissed" });
 });
