@@ -248,7 +248,7 @@
         align-items: center;
         gap: 14px;
         max-width: min(92vw, 460px);
-        padding: 12px 22px 12px 14px;
+        padding: 12px 12px 12px 14px;
         font-family: inherit;
         font-size: 16px;
         line-height: 1.4;
@@ -262,6 +262,25 @@
       }
       #install:hover {
         background: #ff5c52;
+      }
+      /* ✕ to dismiss the install banner (a span, not a button — nested buttons
+         are invalid; the JS handler stops the click from reaching #install). */
+      #install-close {
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        margin-left: 2px;
+        font-size: 15px;
+        color: #fff;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        cursor: pointer;
+      }
+      #install-close:hover {
+        background: rgba(255, 255, 255, 0.36);
       }
       #install img {
         flex: none;
@@ -458,6 +477,7 @@
         <span class="title" data-i18n="install.button">Nainstalovat na plochu</span>
         <span class="sub" data-i18n="install.sub">Hraj na celou obrazovku, bez lišt prohlížeče</span>
       </span>
+      <span id="install-close" aria-label="Zavřít">✕</span>
     </button>
     <div id="installed">
       <span data-i18n="installed.text">💡 Z ikony na ploše běží Survive the Sprint na celou obrazovku bez lišt prohlížeče.</span>

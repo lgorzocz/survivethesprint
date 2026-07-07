@@ -246,7 +246,19 @@ type InstallPrompt = Event & {
 };
 let deferredPrompt: InstallPrompt | null = null;
 
+// The player can dismiss the install banner with its ✕; remember that so it
+// doesn't nag on every load. They can still install via the browser's own UI.
+const INSTALL_DISMISSED_KEY = "survivethesprint.install.dismissed";
+const installDismissed = (): boolean => {
+  try {
+    return localStorage.getItem(INSTALL_DISMISSED_KEY) === "1";
+  } catch {
+    return false;
+  }
+};
+
 function showInstallChip(): void {
+  if (installDismissed()) return;
   if (!isStandalone() && isMobileLike()) installBtn?.classList.add("show");
 }
 
@@ -326,6 +338,19 @@ document
 document
   .getElementById("installed-close")
   ?.addEventListener("click", () => installedHint?.classList.remove("show"));
+
+// Dismiss the install banner with its ✕. stopPropagation keeps the click from
+// bubbling to #install and firing the install action; the choice is remembered.
+document.getElementById("install-close")?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  installBtn?.classList.remove("show");
+  try {
+    localStorage.setItem(INSTALL_DISMISSED_KEY, "1");
+  } catch {
+    /* private mode — dismissed for this session only */
+  }
+  track({ name: "pwa_install", outcome: "dismissed" });
+});
 
 // (1) After a successful install, replace the chip with the open-from-Home hint.
 window.addEventListener("appinstalled", () => {
